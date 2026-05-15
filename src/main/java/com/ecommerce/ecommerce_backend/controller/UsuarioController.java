@@ -29,4 +29,13 @@ public class UsuarioController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PutMapping("/{id}/rol")
+    public ResponseEntity<?> cambiarRol(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(usuarioService.cambiarRol(id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
