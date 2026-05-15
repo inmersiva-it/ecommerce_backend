@@ -28,8 +28,9 @@ public class SecurityConfig {
                 .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/auth/register").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register", "/auth/check-email", "/auth/reset-password").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/productos/**", "/categorias/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/promociones/validar/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

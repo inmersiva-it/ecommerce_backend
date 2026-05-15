@@ -5,28 +5,27 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Entity
-@Table(name = "usuarios")
+@Table(name = "promociones")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Usuario {
+public class Promocion {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(length = 100, nullable = false)
-    private String nombre;
+    @Column(length = 50, nullable = false, unique = true)
+    private String codigo;
 
-    @Column(length = 100, nullable = false, unique = true)
-    private String email;
+    @Column(nullable = false)
+    private Integer porcentajeDescuento;
 
-    @Column(length = 255, nullable = false)
-    private String password;
-
-    @ManyToOne
-    @JoinColumn(name = "role_id")
-    private Rol rol;
+    @Column(nullable = false)
+    private LocalDate fechaVencimiento;
 
     @Column(nullable = false)
     private Boolean activo = true;

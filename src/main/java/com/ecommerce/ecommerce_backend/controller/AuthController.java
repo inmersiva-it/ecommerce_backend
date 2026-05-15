@@ -90,4 +90,27 @@ public class AuthController {
     public String test() {
         return "Ruta protegida funcionando";
     }
+
+    @PostMapping("/check-email")
+    public ResponseEntity<?> checkEmail(@RequestBody java.util.Map<String, String> request) {
+        String email = request.get("email");
+        Optional<Usuario> userOpt = authService.findByEmail(email);
+        if (userOpt.isPresent()) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(404).body("El correo no existe en la base de datos");
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody java.util.Map<String, String> request) {
+        String email = request.get("email");
+        String newPassword = request.get("password");
+        try {
+            authService.resetPassword(email, newPassword);
+            return ResponseEntity.ok("Contraseña actualizada correctamente");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
