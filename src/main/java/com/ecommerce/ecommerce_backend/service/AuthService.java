@@ -61,6 +61,13 @@ public class AuthService {
         return userRepository.findByEmail(email);
     }
 
+    public void resetPassword(String email, String newPassword) {
+        Usuario user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
     public Usuario updateProfile(String email, String nombre) {
         Optional<Usuario> userOpt = userRepository.findByEmail(email);
         if (userOpt.isPresent()) {
