@@ -56,10 +56,10 @@ public class PromocionService {
     public int validarCodigo(String codigo) {
         Promocion p = promocionRepository.findByCodigo(codigo.toUpperCase().trim())
                 .orElseThrow(() -> new RuntimeException("Cupón inválido: " + codigo));
-        if (!p.getActivo()) {
+        if (!Boolean.TRUE.equals(p.getActivo())) {
             throw new RuntimeException("El cupón está inactivo.");
         }
-        if (p.getFechaVencimiento().isBefore(LocalDate.now())) {
+        if (p.getFechaVencimiento() != null && p.getFechaVencimiento().isBefore(LocalDate.now())) {
             throw new RuntimeException("El cupón ha vencido.");
         }
         return p.getPorcentajeDescuento();
