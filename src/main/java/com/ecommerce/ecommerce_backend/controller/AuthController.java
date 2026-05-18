@@ -37,7 +37,7 @@ public class AuthController {
             return ResponseEntity.status(401).body("Credenciales incorrectas");
         }
         // Administradores siempre pueden entrar; solo bloquear a clientes
-        boolean esAdmin = user.getRol() != null && "ADMIN".equalsIgnoreCase(user.getRol().getNombre());
+        boolean esAdmin = user.getRol() != null && "Administrador".equalsIgnoreCase(user.getRol().getNombre());
         if (!esAdmin && Boolean.FALSE.equals(user.getActivo())) {
             return ResponseEntity.status(403).body("Tu cuenta ha sido bloqueada. Contacta al administrador.");
         }

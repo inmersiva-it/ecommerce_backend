@@ -53,6 +53,7 @@ public class AuthService {
         Rol rolCliente = rolRepository.findByNombre("Cliente")
                 .orElseThrow(() -> new RuntimeException("Error: Rol 'Cliente' no encontrado."));
         user.setRol(rolCliente);
+        user.setActivo(true);
         
         return userRepository.save(user);
     }

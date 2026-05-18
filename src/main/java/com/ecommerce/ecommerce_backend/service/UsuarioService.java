@@ -32,7 +32,7 @@ public class UsuarioService {
 
         // Si se intenta bloquear (activo → inactivo), proteger al último admin activo
         if (Boolean.TRUE.equals(u.getActivo())) {
-            boolean esAdmin = u.getRol() != null && "ADMIN".equalsIgnoreCase(u.getRol().getNombre());
+            boolean esAdmin = u.getRol() != null && "Administrador".equalsIgnoreCase(u.getRol().getNombre());
             if (esAdmin) {
                 long adminsActivos = usuarioRepository.countActiveAdmins();
                 if (adminsActivos <= 1) {
@@ -50,12 +50,12 @@ public class UsuarioService {
         Usuario u = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + id));
 
-        // Determinar el nuevo rol (toggle: ADMIN ↔ CLIENTE)
-        String rolActual = u.getRol() != null ? u.getRol().getNombre() : "CLIENTE";
-        String nuevoRolNombre = "ADMIN".equalsIgnoreCase(rolActual) ? "CLIENTE" : "ADMIN";
+        // Determinar el nuevo rol (toggle: Administrador ↔ Cliente)
+        String rolActual = u.getRol() != null ? u.getRol().getNombre() : "Cliente";
+        String nuevoRolNombre = "Administrador".equalsIgnoreCase(rolActual) ? "Cliente" : "Administrador";
 
         // Si se intenta quitar el rol de admin, proteger al último admin activo
-        if ("ADMIN".equalsIgnoreCase(rolActual)) {
+        if ("Administrador".equalsIgnoreCase(rolActual)) {
             long adminsActivos = usuarioRepository.countActiveAdmins();
             if (adminsActivos <= 1 && Boolean.TRUE.equals(u.getActivo())) {
                 throw new RuntimeException("No se puede cambiar el rol del único administrador activo del sistema.");
@@ -79,7 +79,7 @@ public class UsuarioService {
         if (u.getRol() != null) {
             dto.setRol(u.getRol().getNombre());
         } else {
-            dto.setRol("CLIENTE");
+            dto.setRol("Cliente");
         }
         return dto;
     }

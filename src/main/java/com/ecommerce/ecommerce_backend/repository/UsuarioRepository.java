@@ -10,6 +10,6 @@ import java.util.Optional;
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     Optional<Usuario> findByEmail(String email);
 
-    @Query("SELECT COUNT(u) FROM Usuario u WHERE u.rol.nombre = 'ADMIN' AND u.activo = true")
+    @Query("SELECT COUNT(u) FROM Usuario u WHERE u.rol.nombre = 'Administrador' AND u.activo = true")
     long countActiveAdmins();
 }
