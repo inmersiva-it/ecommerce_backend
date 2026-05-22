@@ -1,0 +1,71 @@
+-- =================================================================
+-- 5. CATÁLOGO DE PRODUCTOS (Con soporte para imágenes)
+-- =================================================================
+CREATE TABLE productos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(150) NOT NULL,
+    descripcion TEXT,
+    precio DECIMAL(10, 2) NOT NULL,
+    stock INT NOT NULL DEFAULT 0,
+    imagen_url VARCHAR(255), -- ¡Aquí se guardará el link de la foto!
+    categoria_id INT NOT NULL,
+    marca_id INT NOT NULL,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (marca_id) REFERENCES marcas(id) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- =================================================================
+-- 6. PASARELAS DE PAGO
+-- =================================================================
+CREATE TABLE metodos_pago (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+-- Insertamos los métodos de pago reales para Perú/General
+INSERT INTO metodos_pago (nombre) VALUES 
+('Tarjeta de Crédito / Débito'),
+('Yape / Plin'),
+('Transferencia Bancaria');
+
+-- =================================================================
+-- 7. EL CORAZÓN DE LAS VENTAS (Pedidos/Facturas)
+-- =================================================================
+CREATE TABLE pedidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    metodo_pago_id INT NOT NULL,
+    estado VARCHAR(50) DEFAULT 'Pendiente', -- Estados: Pendiente, Pagado, Enviado, Entregado
+    total DECIMAL(10, 2) NOT NULL,
+    fecha_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (metodo_pago_id) REFERENCES metodos_pago(id) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- =================================================================
+-- 8. EL DETALLE DE LA COMPRA (Qué hay dentro del carrito)
+-- =================================================================
+CREATE TABLE detalle_pedidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pedido_id INT NOT NULL,
+    producto_id INT NOT NULL,
+    cantidad INT NOT NULL,
+    precio_unitario DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- =================================================================
+-- 9. INTERACCIÓN DEL CLIENTE (Reseñas y Estrellas)
+-- =================================================================
+CREATE TABLE resenas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    producto_id INT NOT NULL,
+    usuario_id INT NOT NULL,
+    calificacion INT NOT NULL CHECK (calificacion >= 1 AND calificacion <= 5), -- Estrellitas del 1 al 5
+    comentario TEXT,
+    fecha_resena TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;

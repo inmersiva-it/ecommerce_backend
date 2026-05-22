@@ -22,24 +22,15 @@ public class ProductoController {
 
     @GetMapping
     public List<Producto> listarTodos() {
-        return productoRepository.findAll();
+        return productoService.obtenerTodos();
     }
 
-    @PostMapping("/comprar")
-    public ResponseEntity<?> comprar(@RequestBody com.ecommerce.ecommerce_backend.dto.CompraRequest request) {
-        try {
-            productoService.comprar(request.getItems());
-            return ResponseEntity.ok("Compra realizada con éxito");
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Producto> obtenerPorId(@PathVariable Integer id) {
-        Optional<Producto> producto = productoRepository.findById(id);
-        return producto.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        Producto producto = productoService.obtenerPorId(id);
+        return ResponseEntity.ok(producto);
     }
 
     @PostMapping
@@ -74,6 +65,6 @@ public class ProductoController {
 
     @GetMapping("/categoria/{categoriaId}")
     public List<Producto> listarPorCategoria(@PathVariable Integer categoriaId) {
-        return productoRepository.findByCategoriaId(categoriaId);
+        return productoService.obtenerPorCategoria(categoriaId);
     }
 }

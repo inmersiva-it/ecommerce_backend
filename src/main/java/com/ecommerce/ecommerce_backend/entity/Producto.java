@@ -35,4 +35,14 @@ public class Producto {
     @ManyToOne
     @JoinColumn(name = "marca_id")
     private Marca marca;
+
+    @Column(name = "imagen_url", length = 255)
+    private String imagenUrl;
+
+    @Transient
+    private Double promedioCalificaciones = 0.0;
+
+    @Transient
+    private java.util.List<String> imagenes = new java.util.ArrayList<>();
 }
+

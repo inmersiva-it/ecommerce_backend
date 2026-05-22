@@ -5,8 +5,11 @@ import com.ecommerce.ecommerce_backend.entity.Rol;
 import com.ecommerce.ecommerce_backend.entity.Usuario;
 import com.ecommerce.ecommerce_backend.repository.RolRepository;
 import com.ecommerce.ecommerce_backend.repository.UsuarioRepository;
+import com.ecommerce.ecommerce_backend.repository.ResenaRepository;
+import com.ecommerce.ecommerce_backend.repository.PedidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,6 +22,12 @@ public class UsuarioService {
 
     @Autowired
     private RolRepository rolRepository;
+
+    @Autowired
+    private ResenaRepository resenaRepository;
+
+    @Autowired
+    private PedidoRepository pedidoRepository;
 
     public List<UsuarioDTO> obtenerTodos() {
         return usuarioRepository.findAll().stream()
@@ -68,6 +77,25 @@ public class UsuarioService {
         u.setRol(nuevoRol);
         usuarioRepository.save(u);
         return toDTO(u);
+    }
+
+    @Transactional
+    public void eliminarUsuario(Integer id) {
+        Usuario u = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + id));
+
+        boolean esAdmin = u.getRol() != null && "Administrador".equalsIgnoreCase(u.getRol().getNombre());
+        if (esAdmin && Boolean.TRUE.equals(u.getActivo())) {
+            long adminsActivos = usuarioRepository.countActiveAdmins();
+            if (adminsActivos <= 1) {
+                throw new RuntimeException("No se puede eliminar al único administrador activo del sistema.");
+            }
+        }
+
+        resenaRepository.deleteByUsuarioId(id);
+        pedidoRepository.deleteByUsuarioId(id);
+
+        usuarioRepository.delete(u);
     }
 
     private UsuarioDTO toDTO(Usuario u) {

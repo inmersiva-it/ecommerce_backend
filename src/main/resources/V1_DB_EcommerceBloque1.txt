@@ -1,0 +1,68 @@
+-- =================================================================
+-- 1. LIMPIEZA INICIAL (Por si acaso empezamos desde cero)
+-- =================================================================
+DROP TABLE IF EXISTS usuarios;
+DROP TABLE IF EXISTS roles;
+DROP TABLE IF EXISTS categorias;
+DROP TABLE IF EXISTS marcas;
+
+-- =================================================================
+-- 2. CREACIÓN DE TABLAS MAESTRAS (No dependen de nadie)
+-- =================================================================
+
+-- Tabla de Roles de Usuario
+CREATE TABLE roles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(30) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+-- Tabla de Categorías de Componentes
+CREATE TABLE categorias (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+-- Tabla de Marcas de Hardware
+CREATE TABLE marcas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+-- =================================================================
+-- 3. CREACIÓN DE TABLAS DEPENDIENTES (Tienen Claves Foráneas)
+-- =================================================================
+
+-- Tabla de Usuarios del Sistema
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role_id INT NOT NULL,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- =================================================================
+-- 4. INSERCIÓN DE DATOS INICIALES REALES
+-- =================================================================
+
+-- Roles base
+INSERT INTO roles (nombre) VALUES ('Administrador'), ('Cliente');
+
+-- Categorías para armar el Setup de PC
+INSERT INTO categorias (nombre) VALUES 
+('Procesadores'),
+('Placas Madre'),
+('Memorias RAM'),
+('Tarjetas de Video'),
+('Almacenamiento (SSD/HDD)'),
+('Fuentes de Poder'),
+('Cases y Coolers'),
+('Monitores'),
+('Periféricos');
+
+-- Marcas líderes de la industria
+INSERT INTO marcas (nombre) VALUES 
+('Intel'), ('AMD'), ('ASUS'), ('NVIDIA'), ('Gigabyte'), 
+('MSI'), ('Corsair'), ('Kingston'), ('Samsung'), ('Logitech'), ('Razer');
