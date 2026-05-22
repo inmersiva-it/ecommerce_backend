@@ -1,0 +1,105 @@
+-- =================================================================
+-- 1. AGREGAR LAS MARCAS FALTANTES PARA EL CATÁLOGO
+-- =================================================================
+INSERT IGNORE INTO marcas (nombre) VALUES 
+('Western Digital'), ('Seagate'), ('Crucial'), ('EVGA'), 
+('Seasonic'), ('Cooler Master'), ('Noctua'), ('NZXT'), 
+('Lian Li'), ('LG'), ('HyperX');
+
+-- =================================================================
+-- 2. CARGA MASIVA DE PRODUCTOS (DATOS SEMILLA)
+-- =================================================================
+
+-- Procesadores
+INSERT INTO productos (nombre, marca_id, categoria_id, descripcion, precio, stock) VALUES  
+('Core i5-13400', (SELECT id FROM marcas WHERE nombre='Intel'), (SELECT id FROM categorias WHERE nombre='Procesadores'), '10 núcleos, 4.6GHz', 920.00, 15),
+('Core i9-14900KS', (SELECT id FROM marcas WHERE nombre='Intel'), (SELECT id FROM categorias WHERE nombre='Procesadores'), '24 núcleos, 6.2GHz', 2800.00, 5),
+('Ryzen 5 5600', (SELECT id FROM marcas WHERE nombre='AMD'), (SELECT id FROM categorias WHERE nombre='Procesadores'), '6 núcleos, 4.4GHz', 580.00, 25),
+('Ryzen 7 7800X3D', (SELECT id FROM marcas WHERE nombre='AMD'), (SELECT id FROM categorias WHERE nombre='Procesadores'), '8 núcleos, 3D V-Cache', 1600.00, 12),
+('Core i5-12400F', (SELECT id FROM marcas WHERE nombre='Intel'), (SELECT id FROM categorias WHERE nombre='Procesadores'), '6 núcleos, 4.4GHz', 650.00, 22);
+
+-- Placas Madre
+INSERT INTO productos (nombre, marca_id, categoria_id, descripcion, precio, stock) VALUES 
+('Prime B760-PLUS', (SELECT id FROM marcas WHERE nombre='ASUS' LIMIT 1), (SELECT id FROM categorias WHERE nombre='Placas Madre' LIMIT 1), 'LGA1700, DDR5, ATX', 680.00, 10),
+('B650M DS3H', (SELECT id FROM marcas WHERE nombre='Gigabyte' LIMIT 1), (SELECT id FROM categorias WHERE nombre='Placas Madre' LIMIT 1), 'Socket AM5, DDR5, Micro-ATX', 550.00, 15),
+('MAG Z790 Tomahawk', (SELECT id FROM marcas WHERE nombre='MSI' LIMIT 1), (SELECT id FROM categorias WHERE nombre='Placas Madre' LIMIT 1), 'LGA1700, DDR5, Wi-Fi 6E, ATX', 1100.00, 8),
+('H610M H', (SELECT id FROM marcas WHERE nombre='Gigabyte' LIMIT 1), (SELECT id FROM categorias WHERE nombre='Placas Madre' LIMIT 1), 'LGA1700, DDR4, Micro-ATX', 320.00, 20),
+('TUF Gaming B550-Plus', (SELECT id FROM marcas WHERE nombre='ASUS' LIMIT 1), (SELECT id FROM categorias WHERE nombre='Placas Madre' LIMIT 1), 'Socket AM4, DDR4, ATX', 620.00, 10);
+
+-- Memorias RAM
+-- Primero agregamos las marcas que faltaban para las RAMs
+INSERT IGNORE INTO marcas (nombre) VALUES ('G.Skill'), ('TeamGroup');
+
+INSERT INTO productos (nombre, marca_id, categoria_id, descripcion, precio, stock) VALUES 
+('Fury Beast 8GB', (SELECT id FROM marcas WHERE nombre='Kingston'), (SELECT id FROM categorias WHERE nombre='Memorias RAM'), 'DDR4 3200MHz CL16', 110.00, 50),
+('Vengeance LPX 16GB', (SELECT id FROM marcas WHERE nombre='Corsair'), (SELECT id FROM categorias WHERE nombre='Memorias RAM'), '2x8GB DDR4 3200MHz', 210.00, 40),
+('Trident Z5 RGB 32GB', (SELECT id FROM marcas WHERE nombre='G.Skill'), (SELECT id FROM categorias WHERE nombre='Memorias RAM'), '2x16GB DDR5 6000MHz', 650.00, 15),
+('T-Force Delta RGB 16GB', (SELECT id FROM marcas WHERE nombre='TeamGroup'), (SELECT id FROM categorias WHERE nombre='Memorias RAM'), '2x8GB DDR4 3600MHz', 240.00, 30),
+('Dominator Platinum 32GB', (SELECT id FROM marcas WHERE nombre='Corsair'), (SELECT id FROM categorias WHERE nombre='Memorias RAM'), '2x16GB DDR5 5200MHz', 850.00, 10);
+
+-- Tarjetas de Video
+-- Primero agregamos la marca que faltaba
+INSERT IGNORE INTO marcas (nombre) VALUES ('Sapphire');
+
+INSERT INTO productos (nombre, marca_id, categoria_id, descripcion, precio, stock) VALUES  
+('RTX 4060 Dual', (SELECT id FROM marcas WHERE nombre='ASUS'), (SELECT id FROM categorias WHERE nombre='Tarjetas de Video'), '8GB GDDR6', 1450.00, 12),
+('RTX 4070 Super WF', (SELECT id FROM marcas WHERE nombre='Gigabyte'), (SELECT id FROM categorias WHERE nombre='Tarjetas de Video'), '12GB GDDR6X', 2850.00, 8),
+('RTX 4090 Strix', (SELECT id FROM marcas WHERE nombre='ASUS'), (SELECT id FROM categorias WHERE nombre='Tarjetas de Video'), '24GB GDDR6X', 8500.00, 3),
+('RX 7800 XT Pulse', (SELECT id FROM marcas WHERE nombre='Sapphire'), (SELECT id FROM categorias WHERE nombre='Tarjetas de Video'), '16GB GDDR6', 2450.00, 7),
+('RTX 3060 12GB WF', (SELECT id FROM marcas WHERE nombre='Gigabyte'), (SELECT id FROM categorias WHERE nombre='Tarjetas de Video'), '12GB GDDR6', 1280.00, 15);
+
+-- Almacenamiento
+INSERT INTO productos (nombre, marca_id, categoria_id, descripcion, precio, stock) VALUES  
+('WD Blue 1TB HDD', (SELECT id FROM marcas WHERE nombre='Western Digital'), (SELECT id FROM categorias WHERE nombre='Almacenamiento (SSD/HDD)'), '7200 RPM SATA', 220.00, 40),
+('Samsung 980 Pro 1TB', (SELECT id FROM marcas WHERE nombre='Samsung'), (SELECT id FROM categorias WHERE nombre='Almacenamiento (SSD/HDD)'), 'NVMe PCIe 4.0', 480.00, 25),
+('Kingston A400 480GB', (SELECT id FROM marcas WHERE nombre='Kingston'), (SELECT id FROM categorias WHERE nombre='Almacenamiento (SSD/HDD)'), 'SATA III 2.5"', 145.00, 60),
+('Seagate Barracuda 2TB', (SELECT id FROM marcas WHERE nombre='Seagate'), (SELECT id FROM categorias WHERE nombre='Almacenamiento (SSD/HDD)'), '7200 RPM SATA', 290.00, 25),
+('Crucial P3 1TB', (SELECT id FROM marcas WHERE nombre='Crucial'), (SELECT id FROM categorias WHERE nombre='Almacenamiento (SSD/HDD)'), 'NVMe PCIe 3.0', 295.00, 35);
+
+-- Fuentes de Poder
+INSERT INTO productos (nombre, marca_id, categoria_id, descripcion, precio, stock) VALUES 
+('Corsair RM850e', (SELECT id FROM marcas WHERE nombre='Corsair'), (SELECT id FROM categorias WHERE nombre='Fuentes de Poder'), '850W, 80+ Gold, Full Modular', 550.00, 15),
+('EVGA 600 W1', (SELECT id FROM marcas WHERE nombre='EVGA'), (SELECT id FROM categorias WHERE nombre='Fuentes de Poder'), '600W, 80+ White', 210.00, 30),
+('Focus GX-750', (SELECT id FROM marcas WHERE nombre='Seasonic'), (SELECT id FROM categorias WHERE nombre='Fuentes de Poder'), '750W, 80+ Gold, Full Modular', 520.00, 12),
+('MAG A650BN', (SELECT id FROM marcas WHERE nombre='MSI'), (SELECT id FROM categorias WHERE nombre='Fuentes de Poder'), '650W, 80+ Bronze', 265.00, 22),
+('ROG Thor 850P', (SELECT id FROM marcas WHERE nombre='ASUS'), (SELECT id FROM categorias WHERE nombre='Fuentes de Poder'), '850W, 80+ Platinum, OLED', 1100.00, 5);
+
+-- Cases y Coolers
+INSERT INTO productos (nombre, marca_id, categoria_id, descripcion, precio, stock) VALUES 
+('Hyper 212 Halo', (SELECT id FROM marcas WHERE nombre='Cooler Master' LIMIT 1), (SELECT id FROM categorias WHERE nombre='Cases y Coolers' LIMIT 1), 'Disipador Aire, RGB', 185.00, 25),
+('NH-D15', (SELECT id FROM marcas WHERE nombre='Noctua' LIMIT 1), (SELECT id FROM categorias WHERE nombre='Cases y Coolers' LIMIT 1), 'Disipador Aire, Doble Torre', 420.00, 10),
+('H5 Flow', (SELECT id FROM marcas WHERE nombre='NZXT' LIMIT 1), (SELECT id FROM categorias WHERE nombre='Cases y Coolers' LIMIT 1), 'Gabinete Mid-Tower, Negro', 380.00, 15),
+('PC-O11 Dynamic', (SELECT id FROM marcas WHERE nombre='Lian Li' LIMIT 1), (SELECT id FROM categorias WHERE nombre='Cases y Coolers' LIMIT 1), 'Gabinete Full Tower, Cristal', 650.00, 12),
+('4000D Airflow', (SELECT id FROM marcas WHERE nombre='Corsair' LIMIT 1), (SELECT id FROM categorias WHERE nombre='Cases y Coolers' LIMIT 1), 'Gabinete Mid-Tower, Blanco', 410.00, 18);
+
+-- Monitores
+INSERT INTO productos (nombre, marca_id, categoria_id, descripcion, precio, stock) VALUES 
+('UltraGear 27GN800-B', (SELECT id FROM marcas WHERE nombre='LG'), (SELECT id FROM categorias WHERE nombre='Monitores'), '27" QHD, IPS, 144Hz', 1150.00, 12),
+('Odyssey G5 32"', (SELECT id FROM marcas WHERE nombre='Samsung'), (SELECT id FROM categorias WHERE nombre='Monitores'), '32" QHD, Curvo, 144Hz', 1350.00, 10),
+('TUF Gaming VG249Q', (SELECT id FROM marcas WHERE nombre='ASUS'), (SELECT id FROM categorias WHERE nombre='Monitores'), '23.8" FHD, IPS, 144Hz', 850.00, 20),
+('Samsung T35F 24"', (SELECT id FROM marcas WHERE nombre='Samsung'), (SELECT id FROM categorias WHERE nombre='Monitores'), '24" FHD, IPS, 75Hz', 450.00, 35),
+('ROG Swift PG259QN', (SELECT id FROM marcas WHERE nombre='ASUS'), (SELECT id FROM categorias WHERE nombre='Monitores'), '24.5" FHD, IPS, 360Hz', 2400.00, 5);
+
+-- Periféricos
+INSERT INTO productos (nombre, marca_id, categoria_id, descripcion, precio, stock) VALUES 
+('G502 Hero', (SELECT id FROM marcas WHERE nombre='Logitech' LIMIT 1), (SELECT id FROM categorias WHERE nombre='Periféricos' LIMIT 1), 'Mouse Gaming 25K DPI', 185.00, 40),
+('DeathAdder V2', (SELECT id FROM marcas WHERE nombre='Razer' LIMIT 1), (SELECT id FROM categorias WHERE nombre='Periféricos' LIMIT 1), 'Mouse Gaming Ergonómico', 160.00, 35),
+('K70 RGB MK.2', (SELECT id FROM marcas WHERE nombre='Corsair' LIMIT 1), (SELECT id FROM categorias WHERE nombre='Periféricos' LIMIT 1), 'Teclado Mecánico Cherry MX', 580.00, 15),
+('Cloud II', (SELECT id FROM marcas WHERE nombre='HyperX' LIMIT 1), (SELECT id FROM categorias WHERE nombre='Periféricos' LIMIT 1), 'Audífonos Gaming 7.1', 320.00, 30),
+('G Pro X Keyboard', (SELECT id FROM marcas WHERE nombre='Logitech' LIMIT 1), (SELECT id FROM categorias WHERE nombre='Periféricos' LIMIT 1), 'Teclado Mecánico TKL', 450.00, 20);
+
+SELECT p.id, p.nombre AS 'Producto', m.nombre AS 'Marca', c.nombre AS 'Categoría', p.precio, p.stock
+FROM productos p
+JOIN marcas m ON p.marca_id = m.id
+JOIN categorias c ON p.categoria_id = c.id;
+
+
+
+
+
+
+
+
+
+
+

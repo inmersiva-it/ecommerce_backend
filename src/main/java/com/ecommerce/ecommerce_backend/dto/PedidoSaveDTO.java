@@ -8,14 +8,15 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CompraRequest {
-    private List<ItemCompra> items;
-    private String codigoPromocion; // opcional
+public class PedidoSaveDTO {
+    private Integer metodoPagoId;
+    private String codigoPromocion;
+    private List<ItemPedidoSave> items;
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ItemCompra {
+    public static class ItemPedidoSave {
         private Integer productoId;
         private Integer cantidad;
     }
