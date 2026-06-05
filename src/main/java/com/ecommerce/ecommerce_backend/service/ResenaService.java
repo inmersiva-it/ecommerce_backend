@@ -12,7 +12,6 @@ import com.ecommerce.ecommerce_backend.repository.ResenaRepository;
 import com.ecommerce.ecommerce_backend.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,7 +29,6 @@ public class ResenaService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    @Transactional
     public ResenaDTO crearResena(String userEmail, Integer productoId, ResenaSaveDTO dto) {
         Usuario usuario = usuarioRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + userEmail));
@@ -38,16 +36,29 @@ public class ResenaService {
         Producto producto = productoRepository.findById(productoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con ID: " + productoId));
 
-        if (dto.getCalificacion() == null || dto.getCalificacion() < 1 || dto.getCalificacion() > 5) {
-            throw new BadRequestException("La calificación debe estar entre 1 y 5 estrellas");
-        }
-
         Resena resena = new Resena();
-        resena.setProducto(producto);
-        resena.setUsuario(usuario);
-        resena.setCalificacion(dto.getCalificacion());
+        resena.setProductoId(productoId);
+        resena.setUsuarioId(usuario.getId());
+        resena.setUsuarioNombre(usuario.getNombre());
+        resena.setUsuarioEmail(usuario.getEmail());
         resena.setComentario(dto.getComentario());
         resena.setFechaResena(LocalDateTime.now());
+
+        if (dto.getParentId() != null && !dto.getParentId().trim().isEmpty()) {
+            // Es una respuesta a un comentario
+            Resena parent = resenaRepository.findById(dto.getParentId().trim())
+                    .orElseThrow(() -> new ResourceNotFoundException("Comentario principal no encontrado con ID: " + dto.getParentId()));
+            
+            resena.setParentId(parent.getId());
+            resena.setCalificacion(null); // Las respuestas no tienen calificación
+        } else {
+            // Es una reseña principal
+            if (dto.getCalificacion() == null || dto.getCalificacion() < 1 || dto.getCalificacion() > 5) {
+                throw new BadRequestException("La calificación debe estar entre 1 y 5 estrellas");
+            }
+            resena.setCalificacion(dto.getCalificacion());
+            resena.setParentId(null);
+        }
 
         resena = resenaRepository.save(resena);
         return mapToDTO(resena);
@@ -67,8 +78,21 @@ public class ResenaService {
         if (!productoRepository.existsById(productoId)) {
             throw new ResourceNotFoundException("Producto no encontrado con ID: " + productoId);
         }
-        Double avg = resenaRepository.findAverageCalificacionByProductoId(productoId);
-        return avg != null ? avg : 0.0;
+        List<Resena> resenas = resenaRepository.findByProductoId(productoId);
+        if (resenas.isEmpty()) {
+            return 0.0;
+        }
+
+        double sum = 0.0;
+        int count = 0;
+        for (Resena r : resenas) {
+            // Solo promedia reseñas de nivel superior (parentId es null o vacío) con estrellas válidas
+            if ((r.getParentId() == null || r.getParentId().isEmpty()) && r.getCalificacion() != null && r.getCalificacion() > 0) {
+                sum += r.getCalificacion();
+                count++;
+            }
+        }
+        return count > 0 ? (sum / count) : 0.0;
     }
 
     private ResenaDTO mapToDTO(Resena r) {
@@ -77,9 +101,10 @@ public class ResenaService {
                 r.getCalificacion(),
                 r.getComentario(),
                 r.getFechaResena(),
-                r.getUsuario().getNombre(),
-                r.getUsuario().getEmail(),
-                r.getProducto().getId()
+                r.getUsuarioNombre(),
+                r.getUsuarioEmail(),
+                r.getProductoId(),
+                r.getParentId()
         );
     }
 }

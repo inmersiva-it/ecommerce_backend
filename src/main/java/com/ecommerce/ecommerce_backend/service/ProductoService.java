@@ -3,6 +3,7 @@ package com.ecommerce.ecommerce_backend.service;
 
 import com.ecommerce.ecommerce_backend.entity.ImagenProducto;
 import com.ecommerce.ecommerce_backend.entity.Producto;
+import com.ecommerce.ecommerce_backend.entity.Resena;
 import com.ecommerce.ecommerce_backend.exception.ResourceNotFoundException;
 import com.ecommerce.ecommerce_backend.repository.ImagenProductoRepository;
 import com.ecommerce.ecommerce_backend.repository.ProductoRepository;
@@ -53,8 +54,16 @@ public class ProductoService {
     }
 
     private void cargarDatosAdicionales(Producto p) {
-        Double avg = resenaRepository.findAverageCalificacionByProductoId(p.getId());
-        p.setPromedioCalificaciones(avg != null ? avg : 0.0);
+        List<Resena> resenas = resenaRepository.findByProductoId(p.getId());
+        double sum = 0.0;
+        int count = 0;
+        for (Resena r : resenas) {
+            if ((r.getParentId() == null || r.getParentId().isEmpty()) && r.getCalificacion() != null && r.getCalificacion() > 0) {
+                sum += r.getCalificacion();
+                count++;
+            }
+        }
+        p.setPromedioCalificaciones(count > 0 ? (sum / count) : 0.0);
 
         List<String> urls = imagenProductoRepository.findByProductoId(p.getId())
                 .stream()

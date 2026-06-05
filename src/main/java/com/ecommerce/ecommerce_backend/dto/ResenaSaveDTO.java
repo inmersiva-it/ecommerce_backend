@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class ResenaSaveDTO {
     private Integer calificacion;
     private String comentario;
+    private String parentId;
 }

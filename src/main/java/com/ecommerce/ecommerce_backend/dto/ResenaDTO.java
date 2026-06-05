@@ -9,11 +9,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ResenaDTO {
-    private Integer id;
+    private String id;
     private Integer calificacion;
     private String comentario;
     private LocalDateTime fechaResena;
     private String usuarioNombre;
     private String usuarioEmail;
     private Integer productoId;
+    private String parentId;
 }
