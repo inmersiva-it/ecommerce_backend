@@ -39,6 +39,9 @@ public class Producto {
     @Column(name = "imagen_url", length = 255)
     private String imagenUrl;
 
+    @Column(length = 50)
+    private String color;
+
     @Transient
     private Double promedioCalificaciones = 0.0;
 

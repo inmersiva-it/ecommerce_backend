@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,6 +41,23 @@ public class PedidoService {
     @Autowired
     private PromocionRepository promocionRepository;
 
+    @Autowired
+    private KernelFileLogger kernelFileLogger;
+
+    /*
+     * =========================================================================
+     *           FUNDAMENTOS DE SISTEMAS OPERATIVOS - EXAMEN PARCIAL 3
+     * =========================================================================
+     * CONCEPTO: SINCRONIZACIÓN Y EXCLUSIÓN MUTUA (MUTEX)
+     * checkoutLock (ReentrantLock) se comporta como un Mutex. Evita condiciones
+     * de carrera (Race Conditions) si múltiples peticiones concurrentes intentan
+     * comprar y restar stock del mismo producto simultáneamente. Garantiza que
+     * el bloque de consulta y decremento de inventario (sección crítica) sea
+     * atómico y seguro a nivel de hilos de ejecución.
+     * =========================================================================
+     */
+    private final ReentrantLock checkoutLock = new ReentrantLock();
+
     @Transactional
     public PedidoDTO crearPedido(String userEmail, PedidoSaveDTO dto) {
         Usuario usuario = usuarioRepository.findByEmail(userEmail)
@@ -52,75 +70,84 @@ public class PedidoService {
             throw new BadRequestException("El pedido debe contener al menos un producto");
         }
 
-        Pedido pedido = new Pedido();
-        pedido.setUsuario(usuario);
-        pedido.setMetodoPago(metodoPago);
-        pedido.setEstado("Pendiente");
-        pedido.setFechaPedido(LocalDateTime.now());
+        checkoutLock.lock(); // Adquisición del Mutex antes de entrar a la sección crítica
+        try {
+            Pedido pedido = new Pedido();
+            pedido.setUsuario(usuario);
+            pedido.setMetodoPago(metodoPago);
+            pedido.setEstado("Pendiente");
+            pedido.setFechaPedido(LocalDateTime.now());
 
-        // Validate promo code if provided
-        Promocion promocion = null;
-        BigDecimal descuento = BigDecimal.ZERO;
-        String codigoUsado = null;
-        if (dto.getCodigoPromocion() != null && !dto.getCodigoPromocion().trim().isEmpty()) {
-            String codigo = dto.getCodigoPromocion().trim().toUpperCase();
-            promocion = promocionRepository.findByCodigo(codigo)
-                    .orElseThrow(() -> new ResourceNotFoundException("Cupón de descuento no encontrado: " + codigo));
-            if (!promocion.getActivo()) {
-                throw new BadRequestException("El cupón de descuento no está activo: " + codigo);
+            // Validate promo code if provided
+            Promocion promocion = null;
+            BigDecimal descuento = BigDecimal.ZERO;
+            String codigoUsado = null;
+            if (dto.getCodigoPromocion() != null && !dto.getCodigoPromocion().trim().isEmpty()) {
+                String codigo = dto.getCodigoPromocion().trim().toUpperCase();
+                promocion = promocionRepository.findByCodigo(codigo)
+                        .orElseThrow(() -> new ResourceNotFoundException("Cupón de descuento no encontrado: " + codigo));
+                if (!promocion.getActivo()) {
+                    throw new BadRequestException("El cupón de descuento no está activo: " + codigo);
+                }
+                if (promocion.getFechaVencimiento().isBefore(LocalDate.now())) {
+                    throw new BadRequestException("El cupón de descuento ha vencido: " + codigo);
+                }
+                codigoUsado = codigo;
             }
-            if (promocion.getFechaVencimiento().isBefore(LocalDate.now())) {
-                throw new BadRequestException("El cupón de descuento ha vencido: " + codigo);
+
+            BigDecimal total = BigDecimal.ZERO;
+            List<DetallePedido> detalles = new ArrayList<>();
+
+            for (PedidoSaveDTO.ItemPedidoSave item : dto.getItems()) {
+                Producto producto = productoRepository.findById(item.getProductoId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con ID: " + item.getProductoId()));
+
+                if (producto.getStock() < item.getCantidad()) {
+                    throw new BadRequestException("Stock insuficiente para el producto: " + producto.getNombre() + " (Disponibles: " + producto.getStock() + ")");
+                }
+
+                // Deduct stock
+                producto.setStock(producto.getStock() - item.getCantidad());
+                productoRepository.save(producto);
+
+                DetallePedido detalle = new DetallePedido();
+                detalle.setPedido(pedido);
+                detalle.setProducto(producto);
+                detalle.setCantidad(item.getCantidad());
+                detalle.setPrecioUnitario(producto.getPrecio());
+
+                detalles.add(detalle);
+
+                BigDecimal subtotal = producto.getPrecio().multiply(BigDecimal.valueOf(item.getCantidad()));
+                total = total.add(subtotal);
             }
-            codigoUsado = codigo;
+
+            if (promocion != null) {
+                BigDecimal porcentaje = BigDecimal.valueOf(promocion.getPorcentajeDescuento());
+                descuento = total.multiply(porcentaje).divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+                total = total.subtract(descuento);
+                if (total.compareTo(BigDecimal.ZERO) < 0) {
+                    total = BigDecimal.ZERO;
+                }
+                pedido.setPromocion(promocion);
+                pedido.setDescuentoAplicado(descuento);
+                pedido.setCodigoUsado(codigoUsado);
+            } else {
+                pedido.setDescuentoAplicado(BigDecimal.ZERO);
+            }
+
+            pedido.setDetalles(detalles);
+            pedido.setTotal(total);
+
+            pedido = pedidoRepository.save(pedido);
+
+            // Registro de auditoría asíncrono utilizando System Calls del Kernel vía pool de hilos
+            kernelFileLogger.logAsync("PEDIDOS", "Pedido #" + pedido.getId() + " creado exitosamente por " + userEmail + ". Total: $" + total);
+
+            return mapToDTO(pedido);
+        } finally {
+            checkoutLock.unlock(); // Liberación del Mutex
         }
-
-        BigDecimal total = BigDecimal.ZERO;
-        List<DetallePedido> detalles = new ArrayList<>();
-
-        for (PedidoSaveDTO.ItemPedidoSave item : dto.getItems()) {
-            Producto producto = productoRepository.findById(item.getProductoId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con ID: " + item.getProductoId()));
-
-            if (producto.getStock() < item.getCantidad()) {
-                throw new BadRequestException("Stock insuficiente para el producto: " + producto.getNombre() + " (Disponibles: " + producto.getStock() + ")");
-            }
-
-            // Deduct stock
-            producto.setStock(producto.getStock() - item.getCantidad());
-            productoRepository.save(producto);
-
-            DetallePedido detalle = new DetallePedido();
-            detalle.setPedido(pedido);
-            detalle.setProducto(producto);
-            detalle.setCantidad(item.getCantidad());
-            detalle.setPrecioUnitario(producto.getPrecio());
-
-            detalles.add(detalle);
-
-            BigDecimal subtotal = producto.getPrecio().multiply(BigDecimal.valueOf(item.getCantidad()));
-            total = total.add(subtotal);
-        }
-
-        if (promocion != null) {
-            BigDecimal porcentaje = BigDecimal.valueOf(promocion.getPorcentajeDescuento());
-            descuento = total.multiply(porcentaje).divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
-            total = total.subtract(descuento);
-            if (total.compareTo(BigDecimal.ZERO) < 0) {
-                total = BigDecimal.ZERO;
-            }
-            pedido.setPromocion(promocion);
-            pedido.setDescuentoAplicado(descuento);
-            pedido.setCodigoUsado(codigoUsado);
-        } else {
-            pedido.setDescuentoAplicado(BigDecimal.ZERO);
-        }
-
-        pedido.setDetalles(detalles);
-        pedido.setTotal(total);
-
-        pedido = pedidoRepository.save(pedido);
-        return mapToDTO(pedido);
     }
 
     @Transactional(readOnly = true)

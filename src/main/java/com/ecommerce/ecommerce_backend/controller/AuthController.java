@@ -107,12 +107,28 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody java.util.Map<String, String> request) {
+        String email = request.get("email");
+        try {
+            authService.generateResetToken(email);
+            return ResponseEntity.ok("Token de recuperación generado con éxito");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody java.util.Map<String, String> request) {
         String email = request.get("email");
+        String token = request.get("token");
         String newPassword = request.get("password");
         try {
-            authService.resetPassword(email, newPassword);
+            if (token != null && !token.trim().isEmpty()) {
+                authService.resetPasswordWithToken(email, token, newPassword);
+            } else {
+                authService.resetPassword(email, newPassword);
+            }
             return ResponseEntity.ok("Contraseña actualizada correctamente");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

@@ -1,24 +1,25 @@
 package com.ecommerce.ecommerce_backend.dto;
 
+import com.ecommerce.ecommerce_backend.entity.Producto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResenaDTO {
+public class PublicacionDTO {
     private String id;
-    private Integer calificacion;
-    private String comentario;
-    private LocalDateTime fechaResena;
+    private String titulo;
+    private String descripcion;
+    private String imagenUrl;
+    private List<Producto> productosEtiquetados;
     private String usuarioNombre;
     private String usuarioEmail;
-    private Integer productoId;
-    private String parentId;
-    private Map<String, Long> reacciones; // Conteo de tipos: e.g., "LIKE": 5
+    private LocalDateTime fechaPublicacion;
+    private Map<String, Long> reacciones; // Conteo de tipos: e.g., "LIKE": 5, "LOVE": 3
     private String reaccionUsuarioActual; // Tipo de reacción del usuario actual (si existe)
-    private String usuarioRol; // Rol del usuario que hizo el comentario/reseña (e.g. Cliente, Administrador)
 }

@@ -77,9 +77,18 @@ public class DataSeeder implements CommandLineRunner {
         upsertCupon("PROFE-20", 20, LocalDate.of(2026, 12, 31));
 
         // ─── Métodos de Pago ───────────────────────────────────────────────
+        try {
+            jdbcTemplate.update("UPDATE metodos_pago SET nombre = 'Tarjeta de Crédito / Débito' WHERE id = 1");
+            jdbcTemplate.update("UPDATE metodos_pago SET nombre = 'Yape' WHERE id = 2");
+            jdbcTemplate.update("UPDATE metodos_pago SET nombre = 'Pago en efectivo' WHERE id = 3");
+            System.out.println("[DataSeeder] Métodos de pago actualizados en la BD.");
+        } catch (Exception e) {
+            System.err.println("[DataSeeder] Error al actualizar métodos de pago: " + e.getMessage());
+        }
+
         getOrCreateMetodoPago("Tarjeta de Crédito / Débito");
-        getOrCreateMetodoPago("Transferencia Bancaria");
-        getOrCreateMetodoPago("Pago Contra Entrega");
+        getOrCreateMetodoPago("Yape");
+        getOrCreateMetodoPago("Pago en efectivo");
 
         // ─── Limpiar tablas obsoletas ──────────────────────────────────────
         try {

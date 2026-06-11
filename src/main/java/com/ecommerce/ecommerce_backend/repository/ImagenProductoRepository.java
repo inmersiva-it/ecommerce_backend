@@ -8,4 +8,9 @@ import java.util.List;
 @Repository
 public interface ImagenProductoRepository extends JpaRepository<ImagenProducto, Integer> {
     List<ImagenProducto> findByProductoId(Integer productoId);
+
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("delete from ImagenProducto i where i.producto.id = :productoId")
+    void deleteByProductoId(@org.springframework.data.repository.query.Param("productoId") Integer productoId);
 }

@@ -29,6 +29,9 @@ public class ResenaService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private ReaccionService reaccionService;
+
     public ResenaDTO crearResena(String userEmail, Integer productoId, ResenaSaveDTO dto) {
         Usuario usuario = usuarioRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + userEmail));
@@ -96,6 +99,39 @@ public class ResenaService {
     }
 
     private ResenaDTO mapToDTO(Resena r) {
+        String currentUserEmail = null;
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+                currentUserEmail = auth.getName();
+            }
+        } catch (Exception e) {
+            // Ignorar
+        }
+        
+        Integer usuarioId = null;
+        if (currentUserEmail != null) {
+            var u = usuarioRepository.findByEmail(currentUserEmail.trim().toLowerCase());
+            if (u.isPresent()) {
+                usuarioId = u.get().getId();
+            }
+        }
+        
+        var reaccionesCount = reaccionService.obtenerConteosPorResena(r.getId());
+        String reaccionUsuario = null;
+        if (usuarioId != null) {
+            reaccionUsuario = reaccionService.obtenerReaccionDeUsuarioEnResena(usuarioId, r.getId());
+        }
+
+        // Obtener el rol de quien redactó el comentario
+        String usuarioRol = "Cliente";
+        if (r.getUsuarioEmail() != null) {
+            var uOpt = usuarioRepository.findByEmail(r.getUsuarioEmail().trim().toLowerCase());
+            if (uOpt.isPresent() && uOpt.get().getRol() != null) {
+                usuarioRol = uOpt.get().getRol().getNombre();
+            }
+        }
+
         return new ResenaDTO(
                 r.getId(),
                 r.getCalificacion(),
@@ -104,7 +140,10 @@ public class ResenaService {
                 r.getUsuarioNombre(),
                 r.getUsuarioEmail(),
                 r.getProductoId(),
-                r.getParentId()
+                r.getParentId(),
+                reaccionesCount,
+                reaccionUsuario,
+                usuarioRol
         );
     }
 }

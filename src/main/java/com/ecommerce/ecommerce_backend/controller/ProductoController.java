@@ -20,6 +20,12 @@ public class ProductoController {
     @Autowired
     private com.ecommerce.ecommerce_backend.service.ProductoService productoService;
 
+    @Autowired
+    private com.ecommerce.ecommerce_backend.repository.ImagenProductoRepository imagenProductoRepository;
+
+    @Autowired
+    private com.ecommerce.ecommerce_backend.repository.ResenaRepository resenaRepository;
+
     @GetMapping
     public List<Producto> listarTodos() {
         return productoService.obtenerTodos();
@@ -48,15 +54,19 @@ public class ProductoController {
                     producto.setStock(productoDetalles.getStock());
                     producto.setCategoria(productoDetalles.getCategoria());
                     producto.setMarca(productoDetalles.getMarca());
+                    producto.setColor(productoDetalles.getColor());
                     Producto actualizado = productoRepository.save(producto);
                     return ResponseEntity.ok(actualizado);
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @org.springframework.transaction.annotation.Transactional
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         if (productoRepository.existsById(id)) {
+            resenaRepository.deleteByProductoId(id);
+            imagenProductoRepository.deleteByProductoId(id);
             productoRepository.deleteById(id);
             return ResponseEntity.noContent().build();
         }
